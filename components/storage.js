@@ -21,6 +21,10 @@ export function saveRegion(regionName, data) {
   const toSave = { ...data };
   try {
     localStorage.setItem(getRegionKey(regionName), JSON.stringify(toSave));
+    // Notify same-tab listeners to refresh aggregates
+    try {
+      window.dispatchEvent(new Event("region-updated"));
+    } catch {}
   } catch {
     // ignore
   }

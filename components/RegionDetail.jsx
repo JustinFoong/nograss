@@ -9,18 +9,28 @@ export default function RegionDetail({ regionName }) {
   const [notes, setNotes] = useState("");
   const [completionDate, setCompletionDate] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
+    // Reset to defaults when switching regions, then load saved data if any
+    setHasHydrated(false);
+    setStatus("Not started");
+    setNotes("");
+    setCompletionDate("");
+    setYoutubeUrl("");
     const saved = loadRegion(regionName);
     if (saved.status) setStatus(saved.status);
     if (saved.notes) setNotes(saved.notes);
     if (saved.completionDate) setCompletionDate(saved.completionDate);
     if (saved.youtubeUrl) setYoutubeUrl(saved.youtubeUrl);
+    // Mark as hydrated on next tick to avoid saving defaults
+    Promise.resolve().then(() => setHasHydrated(true));
   }, [regionName]);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     saveRegion(regionName, { status, notes, completionDate, youtubeUrl });
-  }, [regionName, status, notes, completionDate, youtubeUrl]);
+  }, [regionName, status, notes, completionDate, youtubeUrl, hasHydrated]);
 
   const youtubeId = extractYouTubeId(youtubeUrl);
 

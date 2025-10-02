@@ -6,7 +6,12 @@ import { nations } from "../components/regionsData";
 import { aggregateCompletionProgress, aggregateStatusCounts } from "../components/storage";
 import RegionDetail from "../components/RegionDetail";
 
-const COLORS = ["#4ade80", "#facc15", "#f87171"];
+// Fixed color mapping by status name order: Complete (green), Working (yellow), Not started (red)
+const STATUS_COLORS = {
+  "Complete": "#4ade80",
+  "Working on it": "#facc15",
+  "Not started": "#f87171",
+};
 
 export default function Home() {
   const [search, setSearch] = useState("");
@@ -16,14 +21,17 @@ export default function Home() {
   const [selectedRegion, setSelectedRegion] = useState("");
 
   useEffect(() => {
-    setPieData(aggregateStatusCounts());
-    setLineData(aggregateCompletionProgress());
-    const onStorage = () => {
+    const refresh = () => {
       setPieData(aggregateStatusCounts());
       setLineData(aggregateCompletionProgress());
     };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    refresh();
+    window.addEventListener("storage", refresh);
+    window.addEventListener("region-updated", refresh);
+    return () => {
+      window.removeEventListener("storage", refresh);
+      window.removeEventListener("region-updated", refresh);
+    };
   }, []);
 
   const filteredNations = useMemo(() => {
@@ -40,6 +48,9 @@ export default function Home() {
     });
     return result;
   }, [search]);
+
+  const visiblePieData = useMemo(() => pieData.filter((d) => d.value > 0), [pieData]);
+  const legendData = useMemo(() => pieData.map((d) => ({ ...d, color: STATUS_COLORS[d.name] })), [pieData]);
 
   return (
     <div className="flex h-[calc(100vh-56px)]">
@@ -102,12 +113,14 @@ export default function Home() {
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={80} label>
-                      {pieData.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    <Pie data={visiblePieData} dataKey="value" nameKey="name" outerRadius={95} label>
+                      {visiblePieData.map((entry, i) => (
+                        <Cell key={i} fill={STATUS_COLORS[entry.name]} />
                       ))}
                     </Pie>
-                    <Legend />
+                    <Legend
+                      payload={legendData.map((d) => ({ value: d.name, type: "circle", color: STATUS_COLORS[d.name] }))}
+                    />
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
