@@ -33,6 +33,7 @@ export const nations = {
     "Avidya Forest",
     "Lokapala Jungle",
     "Lost Nursery",
+    "Vanarana",
     "Vissudha Field",
     "Hypostyle Desert",
     "Land of Lower Setekh",
