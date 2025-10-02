@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: sans-serif;
+}
+
+/* Soft theme tweaks */
+.card {
+  @apply border rounded shadow-sm bg-white/80 backdrop-blur-sm p-4;
+}
+.input {
+  @apply border rounded px-3 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-200;
+}
+.btn {
+  @apply rounded px-3 py-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50;
+}
+
+/* Dark mode */
+.dark body {
+  @apply bg-gray-900 text-gray-100;
+}
+.dark .card {
+  @apply bg-gray-800/70 border-gray-700;
+}
+.dark .input {
+  @apply bg-gray-800/70 border-gray-700 focus:ring-blue-500;
+}
+
