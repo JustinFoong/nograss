@@ -47,14 +47,32 @@ export function aggregateStatusCounts() {
 
 export function aggregateCompletionProgress() {
   if (typeof window === "undefined") return [];
-  // Simple cumulative steps: x-axis is index, y is completed count
-  let completed = 0;
-  const points = [];
-  allRegions.forEach((r, index) => {
-    const { status } = loadRegion(r.region);
-    if (status === "Complete") completed += 1;
-    points.push({ step: index + 1, value: completed });
+  // Build cumulative completion counts by completionDate (YYYY-MM-DD)
+  const completions = [];
+  for (const { region } of allRegions) {
+    const { status, completionDate } = loadRegion(region);
+    if (status === "Complete" && completionDate) {
+      // normalize date to YYYY-MM-DD
+      const d = new Date(completionDate);
+      if (!isNaN(d)) {
+        const key = d.toISOString().slice(0, 10);
+        completions.push(key);
+      }
+    }
+  }
+  if (completions.length === 0) return [];
+  // Count per date
+  const perDate = completions.reduce((acc, key) => {
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  // Sort dates and build cumulative series
+  const dates = Object.keys(perDate).sort();
+  let running = 0;
+  const series = dates.map((date) => {
+    running += perDate[date];
+    return { date, value: running };
   });
-  return points;
+  return series;
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { LineChart, Line, Tooltip, PieChart, Pie, Cell, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, Tooltip, PieChart, Pie, Cell, Legend, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { nations } from "../components/regionsData";
 import { aggregateCompletionProgress, aggregateStatusCounts } from "../components/storage";
 import RegionDetail from "../components/RegionDetail";
@@ -19,6 +19,15 @@ export default function Home() {
   const [pieData, setPieData] = useState([]);
   const [lineData, setLineData] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState("");
+  const formatDate = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mon = d.toLocaleString("en-US", { month: "short" });
+    const yy = String(d.getFullYear()).slice(-2);
+    return `${dd}-${mon}-${yy}`;
+  };
 
   useEffect(() => {
     const refresh = () => {
@@ -98,12 +107,23 @@ export default function Home() {
         ) : (
           <>
             <div className="w-1/2 card">
-              <h2 className="font-bold mb-2">Progress Graph</h2>
+              <h2 className="font-bold mb-2">Progress Over Time</h2>
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={lineData}>
-                    <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} dot={false} />
-                    <Tooltip />
+                  <LineChart data={lineData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={(d) => formatDate(d)}
+                      axisLine={{ stroke: "#e5e7eb", strokeDasharray: "3 3" }}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      allowDecimals={false}
+                      axisLine={{ stroke: "#e5e7eb", strokeDasharray: "3 3" }}
+                      tickLine={false}
+                    />
+                    <Tooltip labelFormatter={(d) => `Date: ${formatDate(d)}`} formatter={(v) => [v, "Completed"]} />
+                    <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} dot={{ r: 2 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
