@@ -1,4 +1,4 @@
-import { STATUSES, allRegions } from "./regionsData";
+import { STATUSES, regionEntries, oculiEntries } from "./regionsData";
 
 const STORAGE_PREFIX = "genshin-region:";
 
@@ -33,8 +33,8 @@ export function saveRegion(regionName, data) {
 export function aggregateStatusCounts() {
   if (typeof window === "undefined") return [];
   const counts = { "Complete": 0, "Working on it": 0, "Not started": 0 };
-  for (const { region } of allRegions) {
-    const { status } = loadRegion(region);
+  for (const { id } of regionEntries) {
+    const { status } = loadRegion(id);
     const normalized = STATUSES.includes(status) ? status : "Not started";
     counts[normalized] += 1;
   }
@@ -49,8 +49,8 @@ export function aggregateCompletionProgress() {
   if (typeof window === "undefined") return [];
   // Build cumulative completion counts by completionDate (YYYY-MM-DD)
   const completions = [];
-  for (const { region } of allRegions) {
-    const { status, completionDate } = loadRegion(region);
+  for (const { id } of regionEntries) {
+    const { status, completionDate } = loadRegion(id);
     if (status === "Complete" && completionDate) {
       // normalize date to YYYY-MM-DD
       const d = new Date(completionDate);
@@ -74,5 +74,31 @@ export function aggregateCompletionProgress() {
     return { date, value: running };
   });
   return series;
+}
+
+export function aggregateOculiProgress() {
+  if (typeof window === "undefined") return [];
+  const completions = [];
+  for (const { id } of oculiEntries) {
+    const { status, completionDate } = loadRegion(id);
+    if (status === "Complete" && completionDate) {
+      const d = new Date(completionDate);
+      if (!isNaN(d)) {
+        const key = d.toISOString().slice(0, 10);
+        completions.push(key);
+      }
+    }
+  }
+  if (completions.length === 0) return [];
+  const perDate = completions.reduce((acc, key) => {
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const dates = Object.keys(perDate).sort();
+  let running = 0;
+  return dates.map((date) => {
+    running += perDate[date];
+    return { date, value: running };
+  });
 }
 

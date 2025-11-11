@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --chart-axis-color: #4b5563;
+}
+
+.dark {
+  --chart-axis-color: #d1d5db;
+}
+
 body {
   font-family: sans-serif;
 }

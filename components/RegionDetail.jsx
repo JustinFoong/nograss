@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { STATUSES } from "./regionsData";
 import { loadRegion, saveRegion } from "./storage";
 
-export default function RegionDetail({ regionName }) {
+export default function RegionDetail({ item }) {
+  const regionId = item?.id ?? "";
   const [status, setStatus] = useState("Not started");
   const [notes, setNotes] = useState("");
   const [completionDate, setCompletionDate] = useState("");
@@ -12,31 +13,47 @@ export default function RegionDetail({ regionName }) {
   const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
+    if (!regionId) return;
     // Reset to defaults when switching regions, then load saved data if any
     setHasHydrated(false);
     setStatus("Not started");
     setNotes("");
     setCompletionDate("");
     setYoutubeUrl("");
-    const saved = loadRegion(regionName);
+    const saved = loadRegion(regionId);
     if (saved.status) setStatus(saved.status);
     if (saved.notes) setNotes(saved.notes);
     if (saved.completionDate) setCompletionDate(saved.completionDate);
     if (saved.youtubeUrl) setYoutubeUrl(saved.youtubeUrl);
     // Mark as hydrated on next tick to avoid saving defaults
     Promise.resolve().then(() => setHasHydrated(true));
-  }, [regionName]);
+  }, [regionId]);
 
   useEffect(() => {
-    if (!hasHydrated) return;
-    saveRegion(regionName, { status, notes, completionDate, youtubeUrl });
-  }, [regionName, status, notes, completionDate, youtubeUrl, hasHydrated]);
+    if (!hasHydrated || !regionId) return;
+    saveRegion(regionId, { status, notes, completionDate, youtubeUrl });
+  }, [regionId, status, notes, completionDate, youtubeUrl, hasHydrated]);
 
   const youtubeId = extractYouTubeId(youtubeUrl);
 
+  if (!item) {
+    return (
+      <div className="p-6 max-w-3xl mx-auto w-full card">
+        <h1 className="text-xl font-semibold">Entry not found</h1>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          This region or oculus entry is not configured. Please choose another item.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-3xl mx-auto w-full card">
-      <h1 className="text-2xl font-bold mb-4">{regionName}</h1>
+      <h1 className="text-2xl font-bold">{item.title}</h1>
+      {item.subtitle ? (
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{item.subtitle}</p>
+      ) : null}
+      <div className="h-px bg-gray-200 dark:bg-gray-700 my-4" />
 
       <label className="block mb-1 font-semibold">Status</label>
       <select
