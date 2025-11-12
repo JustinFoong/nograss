@@ -46,7 +46,7 @@ export const nations = {
   },
   Sumeru: {
     oculi: {
-      Dendroculus: ["3.0", "3.1", "3.6"],
+      Dendroculus: ["3.0", "3.1", "3.4", "3.6"],
     },
     regions: [
       "Ardravi Valley",
@@ -66,7 +66,7 @@ export const nations = {
   },
   Fontaine: {
     oculi: {
-      Hydroculus: ["4.0", "4.1", "4.2", "4.3"],
+      Hydroculus: ["4.0", "4.1", "4.2", "4.6"],
     },
     regions: [
       "Belleau Region",
