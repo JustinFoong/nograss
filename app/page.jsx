@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { LineChart, Line, Tooltip, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { nations, getItemById } from "../components/regionsData";
 import {
-  aggregateCompletionProgress,
-  aggregateOculiProgress,
   aggregateStatusCounts,
+  aggregateOculiStatusCounts,
 } from "../components/storage";
 import RegionDetail from "../components/RegionDetail";
 
@@ -21,24 +20,13 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState({});
   const [pieData, setPieData] = useState([]);
-  const [lineData, setLineData] = useState([]);
-  const [oculiData, setOculiData] = useState([]);
+  const [oculiPieData, setOculiPieData] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
-  const formatDate = (iso) => {
-    if (!iso) return "";
-    const d = new Date(iso);
-    if (isNaN(d)) return iso;
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mon = d.toLocaleString("en-US", { month: "short" });
-    const yy = String(d.getFullYear()).slice(-2);
-    return `${dd}-${mon}-${yy}`;
-  };
 
   useEffect(() => {
     const refresh = () => {
       setPieData(aggregateStatusCounts());
-      setLineData(aggregateCompletionProgress());
-      setOculiData(aggregateOculiProgress());
+      setOculiPieData(aggregateOculiStatusCounts());
     };
     refresh();
     window.addEventListener("storage", refresh);
@@ -89,6 +77,11 @@ export default function Home() {
 
   const visiblePieData = useMemo(() => pieData.filter((d) => d.value > 0), [pieData]);
   const legendData = useMemo(() => pieData.map((d) => ({ ...d, color: STATUS_COLORS[d.name] })), [pieData]);
+  const visibleOculiPieData = useMemo(() => oculiPieData.filter((d) => d.value > 0), [oculiPieData]);
+  const oculiLegendData = useMemo(() => oculiPieData.map((d) => ({ ...d, color: STATUS_COLORS[d.name] })), [oculiPieData]);
+  
+  const totalRegions = useMemo(() => pieData.reduce((sum, d) => sum + d.value, 0), [pieData]);
+  const totalPatches = useMemo(() => oculiPieData.reduce((sum, d) => sum + d.value, 0), [oculiPieData]);
 
   return (
     <div className="flex h-[calc(100vh-56px)]">
@@ -180,24 +173,23 @@ export default function Home() {
         ) : (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col lg:flex-row gap-6">
-              <ProgressCard
-                title="Exploration Progress Over Time"
-                subtitle="Regions with 100% exploration"
-                data={lineData}
-                emptyMessage="Add completion dates to regions to see progress over time."
-                lineColor="#2563eb"
-                formatDate={formatDate}
+              <SummaryCard 
+                pieData={visiblePieData} 
+                legendData={legendData} 
+                title="Exploration Progress Summary"
+                subtitle="Breakdown of current region statuses across all nations."
+                total={totalRegions}
+                unit="Regions"
               />
-              <ProgressCard
-                title="Oculi Progress Over Time"
-                subtitle="Patches with all oculi collected"
-                data={oculiData}
-                emptyMessage="Track completion dates for oculi batches to see this chart."
-                lineColor="#7c3aed"
-                formatDate={formatDate}
+              <SummaryCard 
+                pieData={visibleOculiPieData} 
+                legendData={oculiLegendData} 
+                title="Oculi Progress Summary"
+                subtitle="Breakdown of current oculi patch statuses across all nations."
+                total={totalPatches}
+                unit="Patches"
               />
             </div>
-            <SummaryCard pieData={visiblePieData} legendData={legendData} />
           </div>
         )}
       </div>
@@ -205,51 +197,37 @@ export default function Home() {
   );
 }
 
-function ProgressCard({ title, subtitle, data, emptyMessage, lineColor, formatDate }) {
+function SummaryCard({ pieData, legendData, title, subtitle, total, unit }) {
+  const getStatusEmoji = (status) => {
+    if (status === "Complete") return "🟩";
+    if (status === "Working on it") return "🟨";
+    return "🟥";
+  };
+
+  const CustomTooltip = ({ active, payload }) => {
+    if (!active || !payload || !payload[0]) return null;
+    const data = payload[0];
+    const status = data.name;
+    const value = data.value;
+    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+    const emoji = getStatusEmoji(status);
+    return (
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-2 shadow-lg">
+        <p className="text-sm font-medium">
+          {emoji} {status}: {value} {unit} ({percentage}%)
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div className="card flex-1">
-      <div className="flex flex-col gap-1 mb-2">
-        <h2 className="font-bold">{title}</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
-      </div>
-      <div className="h-56">
-        {data.length ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
-              <XAxis
-                dataKey="date"
-                tickFormatter={(d) => formatDate(d)}
-                axisLine={{ stroke: "var(--chart-axis-color)", strokeDasharray: "3 3" }}
-                tickLine={false}
-                minTickGap={20}
-              />
-              <YAxis
-                allowDecimals={false}
-                axisLine={{ stroke: "var(--chart-axis-color)", strokeDasharray: "3 3" }}
-                tickLine={false}
-                width={40}
-              />
-              <Tooltip labelFormatter={(d) => `Date: ${formatDate(d)}`} formatter={(v) => [v, "Completed"]} />
-              <Line type="monotone" dataKey="value" stroke={lineColor} strokeWidth={2} dot={{ r: 2 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <EmptyState message={emptyMessage} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function SummaryCard({ pieData, legendData }) {
-  return (
-    <div className="card">
-      <h2 className="font-bold mb-1">Exploration Progress Summary</h2>
+      <h2 className="font-bold mb-1">{title}</h2>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        Breakdown of current region statuses across all nations.
+        {subtitle}
       </p>
-      <div className="flex flex-col lg:flex-row items-center lg:items-start gap-6">
-        <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+      <div className="flex flex-col items-center gap-6">
+        <div className="flex flex-wrap justify-center gap-4">
           {legendData.map((entry) => (
             <div key={entry.name} className="flex items-center gap-2 text-sm">
               <span
@@ -260,7 +238,7 @@ function SummaryCard({ pieData, legendData }) {
             </div>
           ))}
         </div>
-        <div className="w-full lg:w-1/2 h-64">
+        <div className="w-full h-64 flex justify-center">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -276,19 +254,11 @@ function SummaryCard({ pieData, legendData }) {
                   <Cell key={entry.name} fill={STATUS_COLORS[entry.name]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => [value, "Regions"]} />
+              <Tooltip content={<CustomTooltip />} />
             </PieChart>
           </ResponsiveContainer>
         </div>
       </div>
-    </div>
-  );
-}
-
-function EmptyState({ message }) {
-  return (
-    <div className="flex h-full items-center justify-center text-sm text-gray-500 dark:text-gray-400">
-      {message}
     </div>
   );
 }

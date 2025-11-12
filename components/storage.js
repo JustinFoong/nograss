@@ -45,60 +45,18 @@ export function aggregateStatusCounts() {
   ];
 }
 
-export function aggregateCompletionProgress() {
+export function aggregateOculiStatusCounts() {
   if (typeof window === "undefined") return [];
-  // Build cumulative completion counts by completionDate (YYYY-MM-DD)
-  const completions = [];
-  for (const { id } of regionEntries) {
-    const { status, completionDate } = loadRegion(id);
-    if (status === "Complete" && completionDate) {
-      // normalize date to YYYY-MM-DD
-      const d = new Date(completionDate);
-      if (!isNaN(d)) {
-        const key = d.toISOString().slice(0, 10);
-        completions.push(key);
-      }
-    }
-  }
-  if (completions.length === 0) return [];
-  // Count per date
-  const perDate = completions.reduce((acc, key) => {
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
-  // Sort dates and build cumulative series
-  const dates = Object.keys(perDate).sort();
-  let running = 0;
-  const series = dates.map((date) => {
-    running += perDate[date];
-    return { date, value: running };
-  });
-  return series;
-}
-
-export function aggregateOculiProgress() {
-  if (typeof window === "undefined") return [];
-  const completions = [];
+  const counts = { "Complete": 0, "Working on it": 0, "Not started": 0 };
   for (const { id } of oculiEntries) {
-    const { status, completionDate } = loadRegion(id);
-    if (status === "Complete" && completionDate) {
-      const d = new Date(completionDate);
-      if (!isNaN(d)) {
-        const key = d.toISOString().slice(0, 10);
-        completions.push(key);
-      }
-    }
+    const { status } = loadRegion(id);
+    const normalized = STATUSES.includes(status) ? status : "Not started";
+    counts[normalized] += 1;
   }
-  if (completions.length === 0) return [];
-  const perDate = completions.reduce((acc, key) => {
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
-  const dates = Object.keys(perDate).sort();
-  let running = 0;
-  return dates.map((date) => {
-    running += perDate[date];
-    return { date, value: running };
-  });
+  return [
+    { name: "Complete", value: counts["Complete"] },
+    { name: "Working on it", value: counts["Working on it"] },
+    { name: "Not started", value: counts["Not started"] },
+  ];
 }
 

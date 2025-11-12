@@ -8,7 +8,6 @@ export default function RegionDetail({ item }) {
   const regionId = item?.id ?? "";
   const [status, setStatus] = useState("Not started");
   const [notes, setNotes] = useState("");
-  const [completionDate, setCompletionDate] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [hasHydrated, setHasHydrated] = useState(false);
 
@@ -18,12 +17,10 @@ export default function RegionDetail({ item }) {
     setHasHydrated(false);
     setStatus("Not started");
     setNotes("");
-    setCompletionDate("");
     setYoutubeUrl("");
     const saved = loadRegion(regionId);
     if (saved.status) setStatus(saved.status);
     if (saved.notes) setNotes(saved.notes);
-    if (saved.completionDate) setCompletionDate(saved.completionDate);
     if (saved.youtubeUrl) setYoutubeUrl(saved.youtubeUrl);
     // Mark as hydrated on next tick to avoid saving defaults
     Promise.resolve().then(() => setHasHydrated(true));
@@ -31,8 +28,8 @@ export default function RegionDetail({ item }) {
 
   useEffect(() => {
     if (!hasHydrated || !regionId) return;
-    saveRegion(regionId, { status, notes, completionDate, youtubeUrl });
-  }, [regionId, status, notes, completionDate, youtubeUrl, hasHydrated]);
+    saveRegion(regionId, { status, notes, youtubeUrl });
+  }, [regionId, status, notes, youtubeUrl, hasHydrated]);
 
   const youtubeId = extractYouTubeId(youtubeUrl);
 
@@ -100,14 +97,6 @@ export default function RegionDetail({ item }) {
         onChange={(e) => setNotes(e.target.value)}
         placeholder="Write your notes here..."
         className="w-full h-32 input mb-4"
-      />
-
-      <label className="block mb-1 font-semibold">Completion Date</label>
-      <input
-        type="date"
-        value={completionDate}
-        onChange={(e) => setCompletionDate(e.target.value)}
-        className="input"
       />
     </div>
   );
