@@ -99,9 +99,15 @@ export const nations = {
   },
   "Nod Krai": {
     oculi: {
-      Lunoculus: ["6.0"],
+      Lunoculus: ["6.0", "6.3"],
     },
-    regions: ["Lempo Isle", "Hiisi Island", "Paha Isle"],
+    regions: ["Lempo Isle", 
+      "Hiisi Island", 
+      "Paha Isle",
+      "Voidsea Outlook",
+      "Wavechaser Plain",
+      "Ashveil Peak",
+    ],
   },
   Snezhnaya: {
     oculi: {},
