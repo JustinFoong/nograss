@@ -6,6 +6,8 @@ import { nations, getItemById } from "../components/regionsData";
 import {
   aggregateStatusCounts,
   aggregateOculiStatusCounts,
+  exportData,
+  importData,
 } from "../components/storage";
 import RegionDetail from "../components/RegionDetail";
 
@@ -22,6 +24,7 @@ export default function Home() {
   const [pieData, setPieData] = useState([]);
   const [oculiPieData, setOculiPieData] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [importMsg, setImportMsg] = useState(null);
 
   useEffect(() => {
     const refresh = () => {
@@ -173,22 +176,56 @@ export default function Home() {
         ) : (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col lg:flex-row gap-6">
-              <SummaryCard 
-                pieData={visiblePieData} 
-                legendData={legendData} 
+              <SummaryCard
+                pieData={visiblePieData}
+                legendData={legendData}
                 title="Exploration Progress Summary"
                 subtitle="Breakdown of current region statuses across all nations."
                 total={totalRegions}
                 unit="Regions"
               />
-              <SummaryCard 
-                pieData={visibleOculiPieData} 
-                legendData={oculiLegendData} 
+              <SummaryCard
+                pieData={visibleOculiPieData}
+                legendData={oculiLegendData}
                 title="Oculi Progress Summary"
                 subtitle="Breakdown of current oculi patch statuses across all nations."
                 total={totalPatches}
                 unit="Patches"
               />
+            </div>
+            <div className="card">
+              <h2 className="font-bold mb-1">Data Management</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Export your progress to a file or import a previous backup.
+              </p>
+              <div className="flex items-center gap-3">
+                <button className="btn" onClick={exportData}>
+                  Export Data
+                </button>
+                <label className="btn cursor-pointer">
+                  Import Data
+                  <input
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const count = await importData(file);
+                        setImportMsg(`Imported ${count} item${count !== 1 ? "s" : ""} successfully.`);
+                      } catch (err) {
+                        setImportMsg(`Import failed: ${err.message}`);
+                      }
+                      e.target.value = "";
+                      setTimeout(() => setImportMsg(null), 4000);
+                    }}
+                  />
+                </label>
+              </div>
+              {importMsg && (
+                <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">{importMsg}</p>
+              )}
             </div>
           </div>
         )}

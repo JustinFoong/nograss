@@ -60,3 +60,50 @@ export function aggregateOculiStatusCounts() {
   ];
 }
 
+export function exportData() {
+  if (typeof window === "undefined") return;
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith(STORAGE_PREFIX)) {
+      try {
+        data[key] = JSON.parse(localStorage.getItem(key));
+      } catch {
+        data[key] = localStorage.getItem(key);
+      }
+    }
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `genshin-tracker-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function importData(file) {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined") return reject(new Error("Not in browser"));
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        let count = 0;
+        for (const [key, value] of Object.entries(data)) {
+          if (key.startsWith(STORAGE_PREFIX)) {
+            localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
+            count++;
+          }
+        }
+        window.dispatchEvent(new Event("region-updated"));
+        resolve(count);
+      } catch {
+        reject(new Error("Invalid backup file"));
+      }
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsText(file);
+  });
+}
+
