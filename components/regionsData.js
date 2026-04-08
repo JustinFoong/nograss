@@ -10,6 +10,7 @@ export const nations = {
       "Starfell Valley",
       "Windwail Highland",
       "Dragonspine",
+      "Windrest Peak",
     ],
   },
   Liyue: {
