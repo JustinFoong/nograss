@@ -11,6 +11,7 @@ export const nations = {
       "Windwail Highland",
       "Dragonspine",
       "Windrest Peak",
+      "Temple of Space",
     ],
   },
   Liyue: {
