@@ -2,7 +2,6 @@ export const nations = {
   Mondstadt: {
     oculi: {
       Anemoculus: ["1.0"],
-      "Crimson Agate": ["1.2"],
     },
     regions: [
       "Brightcrown Mountains",
@@ -17,7 +16,6 @@ export const nations = {
   Liyue: {
     oculi: {
       Geoculus: ["1.0"],
-      "Spirit Carp": ["4.4"],
     },
     regions: [
       "Bishui Plain",
