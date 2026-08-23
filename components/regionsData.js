@@ -114,8 +114,16 @@ export const nations = {
     ],
   },
   Snezhnaya: {
-    oculi: {},
-    regions: [],
+    oculi: {
+      Cryoculus: ["7.0"],
+    },
+    regions: [
+      "Volkodlak Tundra",
+      "Everfrozen Earth",
+      "Fellfrost Peak",
+      "Flamefeather Valley",
+      "White Birch Snowgrave",
+    ],
   },
   "Khaenri'ah": {
     oculi: {},
