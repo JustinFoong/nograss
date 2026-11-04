@@ -115,7 +115,7 @@ export const nations = {
   },
   Snezhnaya: {
     oculi: {
-      Cryoculus: ["7.0"],
+      Cryoculus: ["7.0", "7.2"],
     },
     regions: [
       "Volkodlak Tundra",
@@ -123,6 +123,8 @@ export const nations = {
       "Fellfrost Peak",
       "Flamefeather Valley",
       "White Birch Snowgrave",
+      "Novokitezhgrad",
+      "Wingspan Peak",
     ],
   },
   "Khaenri'ah": {
